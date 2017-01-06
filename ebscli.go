@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -11,14 +12,16 @@ import (
 func main() {
 	sess, err := session.NewSession()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to create session %v\n", err)
 	}
 
-	svc := ec2.New(sess, &aws.Config{Region: aws.String("us-east-1")})
+	awsRegion := "us-east-1"
+	svc := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
 	resp, err := svc.DescribeInstances(nil)
 	if err != nil {
-		panic(err)
+		fmt.Println("there was an error listing instances in", awsRegion, err.Error())
+		log.Fatal(err.Error())
 	}
 
 	fmt.Println("> Number of reservation sets: ", len(resp.Reservations))
