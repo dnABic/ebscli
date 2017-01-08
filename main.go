@@ -13,22 +13,40 @@ import (
 var version = "0.0.2"
 
 func main() {
+	var awsRegion string
+
+	commonFlags := []cli.Flag{}
+
 	app := cli.NewApp()
+
 	app.Name = "ebscli"
 	app.Usage = "manage ebs volumes"
 	app.Version = version
+
 	app.Commands = []cli.Command{
 		{
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "list ebs volumes",
+
+			Flags: append(commonFlags,
+				cli.StringFlag{
+					Name:   "region, r",
+					Value:  "us-east-1",
+					Usage:  "AWS Region",
+					EnvVar: "AWS_DEFAULT_REGION",
+
+					Destination: &awsRegion,
+				},
+			),
+
 			Action: func(c *cli.Context) error {
 				sess, err := session.NewSession()
 				if err != nil {
 					log.Fatalf("failed to create session %v\n", err)
 				}
 
-				awsRegion := "us-east-1"
+				//fmt.Println("WE have CONFIG", c.String("region"))
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
 				resp, err := ec2conn.DescribeInstances(nil)
