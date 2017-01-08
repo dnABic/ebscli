@@ -38,6 +38,13 @@ func main() {
 
 					Destination: &awsRegion,
 				},
+				cli.StringFlag{
+					Name:  "filters, f",
+					Value: "",
+					Usage: "Volume filter, eg. \"Name=tag:Project,Values=example\"",
+
+					Destination: &awsRegion,
+				},
 			),
 
 			Action: func(c *cli.Context) error {
