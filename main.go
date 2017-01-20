@@ -14,6 +14,7 @@ var version = "0.0.2"
 
 func main() {
 	var awsRegion string
+	var ebsFilter string
 
 	commonFlags := []cli.Flag{}
 
@@ -41,9 +42,9 @@ func main() {
 				cli.StringFlag{
 					Name:  "filters, f",
 					Value: "",
-					Usage: "Volume filter, eg. \"Name=tag:Project,Values=example\"",
+					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another_tag-key=another_tag-value\"",
 
-					Destination: &awsRegion,
+					Destination: &ebsFilter,
 				},
 			),
 
