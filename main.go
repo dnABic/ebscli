@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli"
 	"log"
 	"os"
+	"strings"
 )
 
 var version = "0.0.2"
@@ -57,7 +58,30 @@ func main() {
 				//fmt.Println("WE have CONFIG", c.String("region"))
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
-				resp, err := ec2conn.DescribeInstances(nil)
+				var params *ec2.DescribeInstancesInput
+				if len(ebsFilter) > 0 {
+					tagList := strings.Split(ebsFilter, ",")
+					tagParams := strings.Split(tagList[0], "=")
+					//tagName := strings.Join("tag:", tagParams[0])
+					tagName := "tag:" + tagParams[0]
+					tagValue := tagParams[1]
+
+					params = &ec2.DescribeInstancesInput{
+						DryRun: aws.Bool(false),
+						Filters: []*ec2.Filter{
+							{
+								Name: aws.String(tagName),
+								Values: []*string{
+									aws.String(tagValue),
+								},
+							},
+							//More values...
+						},
+					}
+				} else {
+					params = nil
+				}
+				resp, err := ec2conn.DescribeInstances(params)
 				if err != nil {
 					fmt.Println("there was an error listing instances in", awsRegion, err.Error())
 					log.Fatal(err.Error())
