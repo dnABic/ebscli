@@ -77,28 +77,24 @@ func main() {
 
 				if len(ebsFilterTag) > 0 {
 					tagList := strings.Split(ebsFilterTag, ",")
-					tagParams := strings.Split(tagList[0], "=")
-					tagName := "tag:" + tagParams[0]
-					tagValue := tagParams[1]
+					var tagFilter []*ec2.Filter
+					for _, tag := range tagList {
+						// var filterElement *ec2.Filter
+						tagParams := strings.Split(tag, "=")
+						tagName := "tag:" + tagParams[0]
+						tagValue := tagParams[1]
+						filterElement := ec2.Filter{
+							Name: aws.String(tagName),
+							Values: []*string{
+								aws.String(tagValue), // Required
+							},
+						}
+						tagFilter = append(tagFilter, &filterElement)
+					}
 
 					paramsEbs = &ec2.DescribeVolumesInput{
-						DryRun: aws.Bool(false),
-						Filters: []*ec2.Filter{
-							{ // Required
-								Name: aws.String(tagName),
-								Values: []*string{
-									aws.String(tagValue), // Required
-									// More values...
-								},
-							},
-							// More values...
-						},
-						//MaxResults: aws.Int64(1),
-						//	NextToken:  aws.String("String"),
-						//		VolumeIds: []*string{
-						//			aws.String("String"), // Required
-						//			// More values...
-						//		},
+						DryRun:  aws.Bool(false),
+						Filters: tagFilter,
 					}
 
 				}
