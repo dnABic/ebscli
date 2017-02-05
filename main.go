@@ -72,10 +72,36 @@ func main() {
 				//fmt.Println("WE have CONFIG", c.String("region"))
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
-				var params *ec2.DescribeInstancesInput
-
 				var paramsEbs *ec2.DescribeVolumesInput
 				paramsEbs = nil
+
+				if len(ebsFilterTag) > 0 {
+					tagList := strings.Split(ebsFilterTag, ",")
+					tagParams := strings.Split(tagList[0], "=")
+					tagName := "tag:" + tagParams[0]
+					tagValue := tagParams[1]
+
+					paramsEbs = &ec2.DescribeVolumesInput{
+						DryRun: aws.Bool(false),
+						Filters: []*ec2.Filter{
+							{ // Required
+								Name: aws.String(tagName),
+								Values: []*string{
+									aws.String(tagValue), // Required
+									// More values...
+								},
+							},
+							// More values...
+						},
+						//MaxResults: aws.Int64(1),
+						//	NextToken:  aws.String("String"),
+						//		VolumeIds: []*string{
+						//			aws.String("String"), // Required
+						//			// More values...
+						//		},
+					}
+
+				}
 
 				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
 
@@ -86,6 +112,8 @@ func main() {
 
 				fmt.Println(respEbs)
 				return nil
+
+				var params *ec2.DescribeInstancesInput
 
 				if len(ebsFilterTag) > 0 {
 					tagList := strings.Split(ebsFilterTag, ",")
