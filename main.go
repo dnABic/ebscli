@@ -81,6 +81,9 @@ func main() {
 					for _, tag := range tagList {
 						// var filterElement *ec2.Filter
 						tagParams := strings.Split(tag, "=")
+						if len(tagParams) != 2 {
+							log.Fatalf("Invalid parameter value %s\n", tag)
+						}
 						tagName := "tag:" + tagParams[0]
 						tagValue := tagParams[1]
 						filterElement := ec2.Filter{
