@@ -74,6 +74,19 @@ func main() {
 
 				var params *ec2.DescribeInstancesInput
 
+				var paramsEbs *ec2.DescribeVolumesInput
+				paramsEbs = nil
+
+				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
+
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+
+				fmt.Println(respEbs)
+				return nil
+
 				if len(ebsFilterTag) > 0 {
 					tagList := strings.Split(ebsFilterTag, ",")
 					tagParams := strings.Split(tagList[0], "=")
