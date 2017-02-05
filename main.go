@@ -15,7 +15,8 @@ var version = "0.0.2"
 
 func main() {
 	var awsRegion string
-	var ebsFilter string
+	var ebsFilterTag string
+	var ebsFilterId string
 	var attachedOnly bool
 
 	commonFlags := []cli.Flag{}
@@ -46,7 +47,7 @@ func main() {
 					Value: "",
 					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another-tag-key=another-tag-value\"",
 
-					Destination: &ebsFilter,
+					Destination: &ebsFilterTag,
 				},
 				cli.BoolFlag{
 					Name:  "attached, a",
@@ -59,10 +60,9 @@ func main() {
 					Value: "",
 					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
 
-					Destination: &ebsFilter,
+					Destination: &ebsFilterId,
 				},
 			),
-
 			Action: func(c *cli.Context) error {
 				sess, err := session.NewSession()
 				if err != nil {
@@ -74,8 +74,8 @@ func main() {
 
 				var params *ec2.DescribeInstancesInput
 
-				if len(ebsFilter) > 0 {
-					tagList := strings.Split(ebsFilter, ",")
+				if len(ebsFilterTag) > 0 {
+					tagList := strings.Split(ebsFilterTag, ",")
 					tagParams := strings.Split(tagList[0], "=")
 					//tagName := strings.Join("tag:", tagParams[0])
 					tagName := "tag:" + tagParams[0]
@@ -115,8 +115,8 @@ func main() {
 							volume := ebs.Ebs
 							fmt.Println(*volume.VolumeId)
 
-							if len(ebsFilter) > 0 {
-								tagList := strings.Split(ebsFilter, ",")
+							if len(ebsFilterTag) > 0 {
+								tagList := strings.Split(ebsFilterTag, ",")
 								tagParams := strings.Split(tagList[0], "=")
 								tagName := "tag:" + tagParams[0]
 								tagValue := tagParams[1]
@@ -155,6 +155,41 @@ func main() {
 						}
 					}
 				}
+
+				return nil
+			},
+		},
+		{
+			Name:    "attach",
+			Aliases: []string{"a"},
+			Usage:   "attach ebs volume",
+
+			Flags: append(commonFlags,
+				cli.StringFlag{
+					Name:   "region, r",
+					Value:  "us-east-1",
+					Usage:  "AWS Region",
+					EnvVar: "AWS_DEFAULT_REGION",
+
+					Destination: &awsRegion,
+				},
+				cli.StringFlag{
+					Name:  "tag, t",
+					Value: "",
+					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another-tag-key=another-tag-value\"",
+
+					Destination: &ebsFilterTag,
+				},
+				cli.StringFlag{
+					Name:  "id, i",
+					Value: "",
+					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
+
+					Destination: &ebsFilterId,
+				},
+			),
+
+			Action: func(c *cli.Context) error {
 
 				return nil
 			},
