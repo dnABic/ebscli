@@ -16,6 +16,7 @@ var version = "0.0.2"
 func main() {
 	var awsRegion string
 	var ebsFilter string
+	var attachedOnly bool
 
 	commonFlags := []cli.Flag{}
 
@@ -41,9 +42,22 @@ func main() {
 					Destination: &awsRegion,
 				},
 				cli.StringFlag{
-					Name:  "filters, f",
+					Name:  "tag, t",
 					Value: "",
-					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another_tag-key=another_tag-value\"",
+					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another-tag-key=another-tag-value\"",
+
+					Destination: &ebsFilter,
+				},
+				cli.BoolFlag{
+					Name:  "attached, a",
+					Usage: "If set to true, lists only ebs volumes which are attached to the host from where ebscli is executed",
+
+					Destination: &attachedOnly,
+				},
+				cli.StringFlag{
+					Name:  "id, i",
+					Value: "",
+					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
 
 					Destination: &ebsFilter,
 				},
@@ -59,6 +73,7 @@ func main() {
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
 				var params *ec2.DescribeInstancesInput
+
 				if len(ebsFilter) > 0 {
 					tagList := strings.Split(ebsFilter, ",")
 					tagParams := strings.Split(tagList[0], "=")
@@ -81,6 +96,7 @@ func main() {
 				} else {
 					params = nil
 				}
+
 				resp, err := ec2conn.DescribeInstances(params)
 				if err != nil {
 					fmt.Println("there was an error listing instances in", awsRegion, err.Error())
@@ -99,41 +115,43 @@ func main() {
 							volume := ebs.Ebs
 							fmt.Println(*volume.VolumeId)
 
-							tagList := strings.Split(ebsFilter, ",")
-							tagParams := strings.Split(tagList[0], "=")
-							tagName := "tag:" + tagParams[0]
-							tagValue := tagParams[1]
+							if len(ebsFilter) > 0 {
+								tagList := strings.Split(ebsFilter, ",")
+								tagParams := strings.Split(tagList[0], "=")
+								tagName := "tag:" + tagParams[0]
+								tagValue := tagParams[1]
 
-							paramsEBS := &ec2.DescribeVolumesInput{
-								DryRun: aws.Bool(false),
-								Filters: []*ec2.Filter{
-									{ // Required
-										Name: aws.String(tagName),
-										Values: []*string{
-											aws.String(tagValue), // Required
-											// More values...
+								paramsEBS := &ec2.DescribeVolumesInput{
+									DryRun: aws.Bool(false),
+									Filters: []*ec2.Filter{
+										{ // Required
+											Name: aws.String(tagName),
+											Values: []*string{
+												aws.String(tagValue), // Required
+												// More values...
+											},
 										},
+										// More values...
 									},
-									// More values...
-								},
-								//MaxResults: aws.Int64(1),
-								//	NextToken:  aws.String("String"),
-								//		VolumeIds: []*string{
-								//			aws.String("String"), // Required
-								//			// More values...
-								//		},
-							}
-							respEBS, err := ec2conn.DescribeVolumes(paramsEBS)
+									//MaxResults: aws.Int64(1),
+									//	NextToken:  aws.String("String"),
+									//		VolumeIds: []*string{
+									//			aws.String("String"), // Required
+									//			// More values...
+									//		},
+								}
+								respEBS, err := ec2conn.DescribeVolumes(paramsEBS)
 
-							if err != nil {
-								// Print the error, cast err to awserr.Error to get the Code and
-								// Message from an error.
-								fmt.Println(err.Error())
-								return nil
-							}
+								if err != nil {
+									// Print the error, cast err to awserr.Error to get the Code and
+									// Message from an error.
+									fmt.Println(err.Error())
+									return nil
+								}
 
-							// Pretty-print the response data.
-							fmt.Println(respEBS)
+								// Pretty-print the response data.
+								fmt.Println(respEBS)
+							}
 						}
 					}
 				}
