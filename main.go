@@ -97,7 +97,11 @@ func main() {
 				}
 
 				if len(ebsFilterId) > 0 {
-					volumeIds = append(volumeIds, &ebsFilterId)
+					volumeIdList := strings.Split(ebsFilterId, ",")
+					for _, id := range volumeIdList {
+						volumeId := id
+						volumeIds = append(volumeIds, &volumeId)
+					}
 				}
 
 				paramsEbs = &ec2.DescribeVolumesInput{
