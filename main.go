@@ -71,10 +71,14 @@ func main() {
 
 				//fmt.Println("WE have CONFIG", c.String("region"))
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
+
 				var paramsEbs *ec2.DescribeVolumesInput
 				paramsEbs = nil
 				var tagFilter []*ec2.Filter
 				var volumeIds []*string
+
+				var paramsInstance *ec2.DescribeInstancesInput
+				paramsInstance = nil
 
 				if len(ebsFilterTag) > 0 {
 					tagList := strings.Split(ebsFilterTag, ",")
@@ -104,6 +108,38 @@ func main() {
 					}
 				}
 
+				if attachedOnly {
+					var instanceIds []*string
+					var volumeId = "i-0ec10bce1881ceed1"
+					instanceIds = append(instanceIds, &volumeId)
+
+					paramsInstance = &ec2.DescribeInstancesInput{
+						DryRun:      aws.Bool(false),
+						InstanceIds: instanceIds,
+					}
+
+					resp, err := ec2conn.DescribeInstances(paramsInstance)
+					if err != nil {
+						log.Fatalf("There was an error listing instances in %s: %s", awsRegion, err.Error())
+					}
+
+					for idx, res := range resp.Reservations {
+						fmt.Println("Number of instances: ", len(res.Instances))
+						for _, inst := range resp.Reservations[idx].Instances {
+							fmt.Println("    - Instance ID: ", *inst.InstanceId)
+							fmt.Println("Block devices count", len(inst.BlockDeviceMappings))
+							for cnt, ebs := range inst.BlockDeviceMappings {
+								fmt.Println(cnt)
+								fmt.Println("Block device name", *ebs.DeviceName)
+								volume := ebs.Ebs
+								fmt.Println(*volume.VolumeId)
+								volumeIds = append(volumeIds, volume.VolumeId)
+							}
+						}
+					}
+
+				}
+
 				paramsEbs = &ec2.DescribeVolumesInput{
 					DryRun:    aws.Bool(false),
 					Filters:   tagFilter,
@@ -118,92 +154,6 @@ func main() {
 				}
 
 				fmt.Println(respEbs)
-				return nil
-
-				var params *ec2.DescribeInstancesInput
-
-				if len(ebsFilterTag) > 0 {
-					tagList := strings.Split(ebsFilterTag, ",")
-					tagParams := strings.Split(tagList[0], "=")
-					//tagName := strings.Join("tag:", tagParams[0])
-					tagName := "tag:" + tagParams[0]
-					tagValue := tagParams[1]
-
-					params = &ec2.DescribeInstancesInput{
-						DryRun: aws.Bool(false),
-						Filters: []*ec2.Filter{
-							{
-								Name: aws.String(tagName),
-								Values: []*string{
-									aws.String(tagValue),
-								},
-							},
-							//More values...
-						},
-					}
-				} else {
-					params = nil
-				}
-
-				resp, err := ec2conn.DescribeInstances(params)
-				if err != nil {
-					fmt.Println("there was an error listing instances in", awsRegion, err.Error())
-					log.Fatal(err.Error())
-				}
-
-				fmt.Println("Number of reservation sets: ", len(resp.Reservations))
-				for idx, res := range resp.Reservations {
-					fmt.Println("Number of instances: ", len(res.Instances))
-					for _, inst := range resp.Reservations[idx].Instances {
-						fmt.Println("    - Instance ID: ", *inst.InstanceId)
-						fmt.Println("Block devices count", len(inst.BlockDeviceMappings))
-						for cnt, ebs := range inst.BlockDeviceMappings {
-							fmt.Println(cnt)
-							fmt.Println("Block device name", *ebs.DeviceName)
-							volume := ebs.Ebs
-							fmt.Println(*volume.VolumeId)
-
-							if len(ebsFilterTag) > 0 {
-								tagList := strings.Split(ebsFilterTag, ",")
-								tagParams := strings.Split(tagList[0], "=")
-								tagName := "tag:" + tagParams[0]
-								tagValue := tagParams[1]
-
-								paramsEBS := &ec2.DescribeVolumesInput{
-									DryRun: aws.Bool(false),
-									Filters: []*ec2.Filter{
-										{ // Required
-											Name: aws.String(tagName),
-											Values: []*string{
-												aws.String(tagValue), // Required
-												// More values...
-											},
-										},
-										// More values...
-									},
-									//MaxResults: aws.Int64(1),
-									//	NextToken:  aws.String("String"),
-									//		VolumeIds: []*string{
-									//			aws.String("String"), // Required
-									//			// More values...
-									//		},
-								}
-								respEBS, err := ec2conn.DescribeVolumes(paramsEBS)
-
-								if err != nil {
-									// Print the error, cast err to awserr.Error to get the Code and
-									// Message from an error.
-									fmt.Println(err.Error())
-									return nil
-								}
-
-								// Pretty-print the response data.
-								fmt.Println(respEBS)
-							}
-						}
-					}
-				}
-
 				return nil
 			},
 		},
