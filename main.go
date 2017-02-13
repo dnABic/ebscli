@@ -18,6 +18,7 @@ func main() {
 	var ebsFilterTag string
 	var ebsFilterId string
 	var attachedOnly bool
+	var ec2Id string
 
 	commonFlags := []cli.Flag{}
 
@@ -61,6 +62,13 @@ func main() {
 					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
 
 					Destination: &ebsFilterId,
+				},
+				cli.StringFlag{
+					Name:  "ec2-id, e",
+					Value: "",
+					Usage: "Filter by volumes attached to specified ec2 ID",
+
+					Destination: &ec2Id,
 				},
 			),
 			Action: func(c *cli.Context) error {
@@ -108,10 +116,12 @@ func main() {
 					}
 				}
 
-				if attachedOnly {
+				if attachedOnly || len(ec2Id) > 0 {
 					var instanceIds []*string
-					var volumeId = "i-0ec10bce1881ceed1"
-					instanceIds = append(instanceIds, &volumeId)
+
+					if len(ec2Id) > 0 {
+						instanceIds = append(instanceIds, &ec2Id)
+					}
 
 					paramsInstance = &ec2.DescribeInstancesInput{
 						DryRun:      aws.Bool(false),
