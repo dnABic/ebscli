@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  moto:
+    image: dnabic/moto:v0.1.1
+    hostname: moto
+    container_name: moto
+    ports:
+      - "5000:5000"
+    labels:
+      PROJECT: moto
+    networks:
+      -  moto_net
+
+networks:
+  moto_net:
+    driver: bridge
