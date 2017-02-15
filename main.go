@@ -77,7 +77,6 @@ func main() {
 					log.Fatalf("failed to create session %v\n", err)
 				}
 
-				//fmt.Println("WE have CONFIG", c.String("region"))
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
 				var paramsEbs *ec2.DescribeVolumesInput
@@ -105,7 +104,6 @@ func main() {
 						}
 						tagFilter = append(tagFilter, &filterElement)
 					}
-
 				}
 
 				if len(ebsFilterId) > 0 {
@@ -198,6 +196,44 @@ func main() {
 			),
 
 			Action: func(c *cli.Context) error {
+				sess, err := session.NewSession()
+				if err != nil {
+					log.Fatalf("failed to create session %v\n", err)
+				}
+
+				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
+
+				var paramsEbs *ec2.DescribeVolumesInput
+				paramsEbs = nil
+				var tagFilter []*ec2.Filter
+
+				if len(ebsFilterTag) > 0 {
+					tagList := strings.Split(ebsFilterTag, ",")
+					for _, tag := range tagList {
+						tagParams := strings.Split(tag, "=")
+						if len(tagParams) != 2 {
+							log.Fatalf("Invalid parameter value %s\n", tag)
+						}
+						tagName := "tag:" + tagParams[0]
+						tagValue := tagParams[1]
+						filterElement := ec2.Filter{
+							Name: aws.String(tagName),
+							Values: []*string{
+								aws.String(tagValue), // Required
+							},
+						}
+						tagFilter = append(tagFilter, &filterElement)
+					}
+				}
+
+				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
+
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+
+				fmt.Println(respEbs)
 
 				return nil
 			},
