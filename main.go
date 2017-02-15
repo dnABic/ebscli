@@ -203,6 +203,8 @@ func main() {
 
 				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
 
+				var paramsEbs *ec2.DescribeVolumesInput
+				paramsEbs = nil
 				var tagFilter []*ec2.Filter
 
 				if len(ebsFilterTag) > 0 {
@@ -223,6 +225,15 @@ func main() {
 						tagFilter = append(tagFilter, &filterElement)
 					}
 				}
+
+				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
+
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+
+				fmt.Println(respEbs)
 
 				return nil
 			},
