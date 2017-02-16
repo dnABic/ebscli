@@ -206,6 +206,7 @@ func main() {
 				var paramsEbs *ec2.DescribeVolumesInput
 				paramsEbs = nil
 				var tagFilter []*ec2.Filter
+				var volumeIds []*string
 
 				if len(ebsFilterTag) > 0 {
 					tagList := strings.Split(ebsFilterTag, ",")
@@ -226,6 +227,20 @@ func main() {
 					}
 				}
 
+				if len(ebsFilterId) > 0 {
+					volumeIdList := strings.Split(ebsFilterId, ",")
+					for _, id := range volumeIdList {
+						volumeId := id
+						volumeIds = append(volumeIds, &volumeId)
+					}
+				}
+
+				paramsEbs = &ec2.DescribeVolumesInput{
+					DryRun:    aws.Bool(false),
+					Filters:   tagFilter,
+					VolumeIds: volumeIds,
+				}
+
 				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
 
 				if err != nil {
@@ -234,7 +249,6 @@ func main() {
 				}
 
 				fmt.Println(respEbs)
-
 				return nil
 			},
 		},
