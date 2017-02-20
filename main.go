@@ -81,29 +81,14 @@ func main() {
 
 				var paramsEbs *ec2.DescribeVolumesInput
 				paramsEbs = nil
-				var tagFilter []*ec2.Filter
+				var filterByTag []*ec2.Filter
 				var volumeIds []*string
 
 				var paramsInstance *ec2.DescribeInstancesInput
 				paramsInstance = nil
 
 				if len(ebsFilterTag) > 0 {
-					tagList := strings.Split(ebsFilterTag, ",")
-					for _, tag := range tagList {
-						tagParams := strings.Split(tag, "=")
-						if len(tagParams) != 2 {
-							log.Fatalf("Invalid parameter value %s\n", tag)
-						}
-						tagName := "tag:" + tagParams[0]
-						tagValue := tagParams[1]
-						filterElement := ec2.Filter{
-							Name: aws.String(tagName),
-							Values: []*string{
-								aws.String(tagValue), // Required
-							},
-						}
-						tagFilter = append(tagFilter, &filterElement)
-					}
+					filterByTag = bla(ebsFilterTag)
 				}
 
 				if len(ebsFilterId) > 0 {
@@ -150,7 +135,7 @@ func main() {
 
 				paramsEbs = &ec2.DescribeVolumesInput{
 					DryRun:    aws.Bool(false),
-					Filters:   tagFilter,
+					Filters:   filterByTag,
 					VolumeIds: volumeIds,
 				}
 
@@ -205,26 +190,11 @@ func main() {
 
 				var paramsEbs *ec2.DescribeVolumesInput
 				paramsEbs = nil
-				var tagFilter []*ec2.Filter
+				var filterByTag []*ec2.Filter
 				var volumeIds []*string
 
 				if len(ebsFilterTag) > 0 {
-					tagList := strings.Split(ebsFilterTag, ",")
-					for _, tag := range tagList {
-						tagParams := strings.Split(tag, "=")
-						if len(tagParams) != 2 {
-							log.Fatalf("Invalid parameter value %s\n", tag)
-						}
-						tagName := "tag:" + tagParams[0]
-						tagValue := tagParams[1]
-						filterElement := ec2.Filter{
-							Name: aws.String(tagName),
-							Values: []*string{
-								aws.String(tagValue), // Required
-							},
-						}
-						tagFilter = append(tagFilter, &filterElement)
-					}
+					filterByTag = bla(ebsFilterTag)
 				}
 
 				if len(ebsFilterId) > 0 {
@@ -237,7 +207,7 @@ func main() {
 
 				paramsEbs = &ec2.DescribeVolumesInput{
 					DryRun:    aws.Bool(false),
-					Filters:   tagFilter,
+					Filters:   filterByTag,
 					VolumeIds: volumeIds,
 				}
 
@@ -264,4 +234,25 @@ func main() {
 	}
 	//return exitCode
 	_ = exitCode
+}
+
+func bla(ebsFilterTag string) []*ec2.Filter {
+	var filterByTag []*ec2.Filter
+	tagList := strings.Split(ebsFilterTag, ",")
+	for _, tag := range tagList {
+		tagParams := strings.Split(tag, "=")
+		if len(tagParams) != 2 {
+			log.Fatalf("Invalid parameter value %s\n", tag)
+		}
+		tagName := "tag:" + tagParams[0]
+		tagValue := tagParams[1]
+		filterElement := ec2.Filter{
+			Name: aws.String(tagName),
+			Values: []*string{
+				aws.String(tagValue), // Required
+			},
+		}
+		filterByTag = append(filterByTag, &filterElement)
+	}
+	return filterByTag
 }
