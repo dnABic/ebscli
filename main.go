@@ -88,15 +88,11 @@ func main() {
 				paramsInstance = nil
 
 				if len(ebsFilterTag) > 0 {
-					filterByTag = bla(ebsFilterTag)
+					filterByTag = getFilterTag(ebsFilterTag)
 				}
 
 				if len(ebsFilterId) > 0 {
-					volumeIdList := strings.Split(ebsFilterId, ",")
-					for _, id := range volumeIdList {
-						volumeId := id
-						volumeIds = append(volumeIds, &volumeId)
-					}
+					volumeIds = getVolumeIds(ebsFilterId)
 				}
 
 				if attachedOnly || len(ec2Id) > 0 {
@@ -194,15 +190,11 @@ func main() {
 				var volumeIds []*string
 
 				if len(ebsFilterTag) > 0 {
-					filterByTag = bla(ebsFilterTag)
+					filterByTag = getFilterTag(ebsFilterTag)
 				}
 
 				if len(ebsFilterId) > 0 {
-					volumeIdList := strings.Split(ebsFilterId, ",")
-					for _, id := range volumeIdList {
-						volumeId := id
-						volumeIds = append(volumeIds, &volumeId)
-					}
+					volumeIds = getVolumeIds(ebsFilterId)
 				}
 
 				paramsEbs = &ec2.DescribeVolumesInput{
@@ -236,7 +228,7 @@ func main() {
 	_ = exitCode
 }
 
-func bla(ebsFilterTag string) []*ec2.Filter {
+func getFilterTag(ebsFilterTag string) []*ec2.Filter {
 	var filterByTag []*ec2.Filter
 	tagList := strings.Split(ebsFilterTag, ",")
 	for _, tag := range tagList {
@@ -255,4 +247,15 @@ func bla(ebsFilterTag string) []*ec2.Filter {
 		filterByTag = append(filterByTag, &filterElement)
 	}
 	return filterByTag
+}
+
+func getVolumeIds(ebsFilterId string) []*string {
+	var volumeIds []*string
+	volumeIdList := strings.Split(ebsFilterId, ",")
+	for _, id := range volumeIdList {
+		volumeId := id
+		volumeIds = append(volumeIds, &volumeId)
+	}
+
+	return volumeIds
 }
