@@ -13,7 +13,8 @@ import (
 
 var version = "0.1.0"
 
-func main() {
+// Main entry point for ebscli application
+func Main(args []string) int {
 	var awsRegion string
 	var ebsFilterTag string
 	var ebsFilterId string
@@ -23,11 +24,9 @@ func main() {
 	commonFlags := []cli.Flag{}
 
 	app := cli.NewApp()
-
 	app.Name = "ebscli"
 	app.Usage = "manage ebs volumes"
 	app.Version = version
-
 	app.Commands = []cli.Command{
 		{
 			Name:    "list",
@@ -80,79 +79,7 @@ func main() {
 					ec2Id:        c.String("ec2-id"),
 					attachedOnly: c.Bool("attached"),
 				}
-				importEbs(args)
-
-				sess, err := session.NewSession()
-				if err != nil {
-					log.Fatalf("failed to create session %v\n", err)
-				}
-
-				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
-
-				var paramsEbs *ec2.DescribeVolumesInput
-				paramsEbs = nil
-				var filterByTag []*ec2.Filter
-				var volumeIds []*string
-
-				var paramsInstance *ec2.DescribeInstancesInput
-				paramsInstance = nil
-
-				if len(ebsFilterTag) > 0 {
-					filterByTag = getFilterTag(ebsFilterTag)
-				}
-
-				if len(ebsFilterId) > 0 {
-					volumeIds = getVolumeIds(ebsFilterId)
-				}
-
-				if attachedOnly || len(ec2Id) > 0 {
-					var instanceIds []*string
-
-					if len(ec2Id) > 0 {
-						instanceIds = append(instanceIds, &ec2Id)
-					}
-
-					paramsInstance = &ec2.DescribeInstancesInput{
-						DryRun:      aws.Bool(false),
-						InstanceIds: instanceIds,
-					}
-
-					resp, err := ec2conn.DescribeInstances(paramsInstance)
-					if err != nil {
-						log.Fatalf("There was an error listing instances in %s: %s", awsRegion, err.Error())
-					}
-
-					for idx, res := range resp.Reservations {
-						fmt.Println("Number of instances: ", len(res.Instances))
-						for _, inst := range resp.Reservations[idx].Instances {
-							fmt.Println("    - Instance ID: ", *inst.InstanceId)
-							fmt.Println("Block devices count", len(inst.BlockDeviceMappings))
-							for cnt, ebs := range inst.BlockDeviceMappings {
-								fmt.Println(cnt)
-								fmt.Println("Block device name", *ebs.DeviceName)
-								volume := ebs.Ebs
-								fmt.Println(*volume.VolumeId)
-								volumeIds = append(volumeIds, volume.VolumeId)
-							}
-						}
-					}
-
-				}
-
-				paramsEbs = &ec2.DescribeVolumesInput{
-					DryRun:    aws.Bool(false),
-					Filters:   filterByTag,
-					VolumeIds: volumeIds,
-				}
-
-				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
-
-				if err != nil {
-					fmt.Println(err.Error())
-					return nil
-				}
-
-				fmt.Println(respEbs)
+				listEbs(args)
 				return nil
 			},
 		},
@@ -234,8 +161,8 @@ func main() {
 		}
 		exitCode = 1
 	}
-	//return exitCode
-	_ = exitCode
+	return exitCode
+	//_ = exitCode
 }
 
 func getFilterTag(ebsFilterTag string) []*ec2.Filter {
@@ -257,15 +184,4 @@ func getFilterTag(ebsFilterTag string) []*ec2.Filter {
 		filterByTag = append(filterByTag, &filterElement)
 	}
 	return filterByTag
-}
-
-func getVolumeIds(ebsFilterId string) []*string {
-	var volumeIds []*string
-	volumeIdList := strings.Split(ebsFilterId, ",")
-	for _, id := range volumeIdList {
-		volumeId := id
-		volumeIds = append(volumeIds, &volumeId)
-	}
-
-	return volumeIds
 }
