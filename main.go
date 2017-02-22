@@ -1,4 +1,4 @@
-package main
+package ebscli
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var version = "0.0.2"
+var version = "0.1.0"
 
 func main() {
 	var awsRegion string
@@ -72,6 +72,16 @@ func main() {
 				},
 			),
 			Action: func(c *cli.Context) error {
+				args := listArgs{
+					name:         c.Args().First(),
+					awsRegion:    c.String("region"),
+					ebsFilterTag: c.String("tag"),
+					ebsFilterId:  c.String("id"),
+					ec2Id:        c.String("ec2-id"),
+					attachedOnly: c.Bool("attached"),
+				}
+				importEbs(args)
+
 				sess, err := session.NewSession()
 				if err != nil {
 					log.Fatalf("failed to create session %v\n", err)
