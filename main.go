@@ -3,7 +3,6 @@ package ebscli
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/urfave/cli"
 	"log"
@@ -114,40 +113,13 @@ func Main(args []string) int {
 			),
 
 			Action: func(c *cli.Context) error {
-				sess, err := session.NewSession()
-				if err != nil {
-					log.Fatalf("failed to create session %v\n", err)
+				args := attachArgs{
+					name:         c.Args().First(),
+					awsRegion:    c.String("region"),
+					ebsFilterTag: c.String("tag"),
+					ebsFilterId:  c.String("id"),
 				}
-
-				ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(awsRegion)})
-
-				var paramsEbs *ec2.DescribeVolumesInput
-				paramsEbs = nil
-				var filterByTag []*ec2.Filter
-				var volumeIds []*string
-
-				if len(ebsFilterTag) > 0 {
-					filterByTag = getFilterTag(ebsFilterTag)
-				}
-
-				if len(ebsFilterId) > 0 {
-					volumeIds = getVolumeIds(ebsFilterId)
-				}
-
-				paramsEbs = &ec2.DescribeVolumesInput{
-					DryRun:    aws.Bool(false),
-					Filters:   filterByTag,
-					VolumeIds: volumeIds,
-				}
-
-				respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
-
-				if err != nil {
-					fmt.Println(err.Error())
-					return nil
-				}
-
-				fmt.Println(respEbs)
+				attachEbs(args)
 				return nil
 			},
 		},
