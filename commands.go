@@ -18,6 +18,13 @@ type listArgs struct {
 	attachedOnly bool
 }
 
+type attachArgs struct {
+	name         string
+	awsRegion    string
+	ebsFilterTag string
+	ebsFilterId  string
+}
+
 func listEbs(args listArgs) {
 	sess, err := session.NewSession()
 	if err != nil {
@@ -89,6 +96,45 @@ func listEbs(args listArgs) {
 	} else {
 		fmt.Println(respEbs)
 	}
+}
+
+func attachEbs(args attachArgs) {
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Fatalf("failed to create session %v\n", err)
+	}
+
+	ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(args.awsRegion)})
+
+	var paramsEbs *ec2.DescribeVolumesInput
+	paramsEbs = nil
+	var filterByTag []*ec2.Filter
+	var volumeIds []*string
+
+	if len(args.ebsFilterTag) > 0 {
+		filterByTag = getFilterTag(args.ebsFilterTag)
+	}
+
+	if len(args.ebsFilterId) > 0 {
+		volumeIds = getVolumeIds(args.ebsFilterId)
+	}
+
+	paramsEbs = &ec2.DescribeVolumesInput{
+		DryRun:    aws.Bool(false),
+		Filters:   filterByTag,
+		VolumeIds: volumeIds,
+	}
+
+	respEbs, err := ec2conn.DescribeVolumes(paramsEbs)
+
+	if err != nil {
+		//fmt.Println(err.Error())
+		//return nil
+		log.Fatalf(err.Error())
+	}
+
+	fmt.Println(respEbs)
+	//return nil
 }
 
 func getVolumeIds(ebsFilterId string) []*string {
