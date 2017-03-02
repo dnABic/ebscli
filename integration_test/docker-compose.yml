@@ -1,17 +1,40 @@
-version: '2'
+version: '2.1'
 
 services:
-  moto:
-    image: dnabic/moto:v0.1.1
+  awsserver:
+    build: awsserver
+    image: dnabic/awsserver:v0.0.1
     hostname: moto
     container_name: moto
     ports:
       - "5000:5000"
     labels:
-      PROJECT: moto
+      app: moto
     networks:
-      -  moto_net
+      -  aws_net
+#    healthcheck:
+      #      test: ["CMD-SHELL", "curl -f http://localhost:5000"]
+      #      test: ["CMD", "curl","-f" "http://localhost:5000"]
+      #      interval: 7s
+      #      timeout: 2s
+      #      retries: 2
+  awssetup:
+    build: awssetup
+    image: dnabic/awssetup:v0.0.1
+    labels:
+      app: awssetup
+    networks:
+      -  aws_net
+    volumes:
+      - ./awssetup/.aws/:/root/.aws
+    environment:
+      HTTP_PROXY: http://awsserver:5000
+      HTTPS_PROXY: http://awsserver:5000
+    command: aws s3 ls
+      #    depends_on:
+      #      moto:
+      #          condition: service_healthy
 
 networks:
-  moto_net:
+  aws_net:
     driver: bridge
