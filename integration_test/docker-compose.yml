@@ -12,6 +12,7 @@ services:
       app: moto
     networks:
       -  aws_net
+    command: moto_server ec2 -H 0.0.0.0
 #    healthcheck:
       #      test: ["CMD-SHELL", "curl -f http://localhost:5000"]
       #      test: ["CMD", "curl","-f" "http://localhost:5000"]
@@ -30,9 +31,10 @@ services:
     environment:
       HTTP_PROXY: http://awsserver:5000
       HTTPS_PROXY: http://awsserver:5000
-    command: aws s3 ls
-      #    depends_on:
-      #      moto:
+    command: aws ec2 describe-instances --endpoint-url http://awsserver:5000
+    depends_on:
+      awsserver:
+        condition: service_started
       #          condition: service_healthy
 
 networks:
