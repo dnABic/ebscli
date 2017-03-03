@@ -21,7 +21,7 @@ services:
       #      retries: 2
   awssetup:
     build: awssetup
-    image: dnabic/awssetup:v0.0.1
+    image: dnabic/awssetup:v0.0.2
     labels:
       app: awssetup
     networks:
@@ -37,6 +37,23 @@ services:
         condition: service_started
       #          condition: service_healthy
 
+  awssetup-terraform:
+    build: terraform
+    image: dnabic/terraform:v0.0.8
+    labels:
+      app: terraform
+    networks:
+      -  aws_net
+    environment:
+      HTTP_PROXY: http://awsserver:5000
+      HTTPS_PROXY: http://awsserver:5000
+      AWS_ACCESS_KEY_ID: the_key
+      AWS_SECRET_ACCESS_KEY: the_secret
+      AWS_DEFAULT_REGION: us-east-1
+    command: apply
+    depends_on:
+      awsserver:
+        condition: service_started
 networks:
   aws_net:
     driver: bridge
