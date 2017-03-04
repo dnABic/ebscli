@@ -1,5 +1,4 @@
-FROM alpine:latest
-COPY bin/ebscli /bin/ebscli
-RUN chmod +x /bin/ebscli
+FROM scratch
+ADD pkg/linux_amd64/ebscli /bin/ebscli
 ENTRYPOINT ["ebscli"]
 CMD ["-h"]
