@@ -1,3 +1,6 @@
+NAME = dnabic/ebscli
+VERSION = v0.0.2
+
 lint:
 	golint
 
@@ -13,4 +16,7 @@ style:
 test:
 	go test
 
-.PHONY: lint build dev style test 
+docker: build
+	docker build -t $(NAME):$(VERSION) .
+
+.PHONY: lint build dev style test docker
