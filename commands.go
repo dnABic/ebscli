@@ -2,11 +2,13 @@ package ebscli
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"log"
-	"strings"
 )
 
 type listArgs struct {
@@ -31,7 +33,8 @@ func listEbs(args listArgs) {
 		log.Fatalf("failed to create session %v\n", err)
 	}
 
-	ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(args.awsRegion)})
+	endpoint_url := os.Getenv("EBSCLI_ENDPOINT_URL")
+	ec2conn := ec2.New(sess, &aws.Config{Region: aws.String(args.awsRegion), Endpoint: aws.String(endpoint_url)})
 
 	var paramsEbs *ec2.DescribeVolumesInput
 	paramsEbs = nil
