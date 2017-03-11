@@ -28,32 +28,52 @@ services:
       -  aws_net
     volumes:
       - ./awssetup/.aws/:/root/.aws
-    environment:
-      HTTP_PROXY: http://awsserver:5000
-      HTTPS_PROXY: http://awsserver:5000
-    command: aws ec2 describe-instances --endpoint-url http://awsserver:5000
+#    environment:
+#      HTTP_PROXY: http://awsserver:5000
+#      HTTPS_PROXY: http://awsserver:5000
+    #command: aws ec2 describe-instances --endpoint-url http://awsserver:5000
+    command: aws ec2 create-volume --size 10 --availability-zone us-east-1a --volume-type gp2 --endpoint-url http://awsserver:5000
     depends_on:
       awsserver:
         condition: service_started
       #          condition: service_healthy
 
-  awssetup-terraform:
-    build: terraform
-    image: dnabic/terraform:v0.0.8
+#  awssetup-terraform:
+#    build: terraform
+#    image: dnabic/terraform:v0.0.13
+#    labels:
+#      app: terraform
+#    networks:
+#      -  aws_net
+#    environment:
+#      HTTP_PROXY: http://awsserver:5000
+#      HTTPS_PROXY: http://awsserver:5000
+#      AWS_ACCESS_KEY_ID: the_key
+#      AWS_SECRET_ACCESS_KEY: the_secret
+#      AWS_DEFAULT_REGION: us-east-1
+#    command: apply
+#    depends_on:
+#      awsserver:
+#        condition: service_started
+
+  ebscli:
+    image: dnabic/ebscli:v0.0.3
     labels:
-      app: terraform
+      app: ebscli
     networks:
-      -  aws_net
+      - aws_net
     environment:
-      HTTP_PROXY: http://awsserver:5000
-      HTTPS_PROXY: http://awsserver:5000
+      EBSCLI_ENDPOINT_URL: http://awsserver:5000
       AWS_ACCESS_KEY_ID: the_key
       AWS_SECRET_ACCESS_KEY: the_secret
       AWS_DEFAULT_REGION: us-east-1
-    command: apply
     depends_on:
       awsserver:
         condition: service_started
+      awssetup:
+        condition: service_started
+    command: list
+
 networks:
   aws_net:
     driver: bridge
