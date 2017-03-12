@@ -10,10 +10,8 @@ import (
 	"strings"
 )
 
-var version = "0.1.0"
-
 // Main entry point for ebscli application
-func Main(args []string) int {
+func Main(args []string, version string) int {
 	commonFlags := []cli.Flag{}
 
 	app := cli.NewApp()
@@ -98,6 +96,18 @@ func Main(args []string) int {
 					ebsFilterId:  c.String("id"),
 				}
 				attachEbs(args)
+				return nil
+			},
+		},
+		{
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "prints the ebscli version",
+
+			Flags: append(commonFlags),
+
+			Action: func(c *cli.Context) error {
+				log.Printf("ebscli version: %s", version)
 				return nil
 			},
 		},
