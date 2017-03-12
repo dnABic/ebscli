@@ -14,12 +14,6 @@ var version = "0.1.0"
 
 // Main entry point for ebscli application
 func Main(args []string) int {
-	var awsRegion string
-	var ebsFilterTag string
-	var ebsFilterId string
-	var attachedOnly bool
-	var ec2Id string
-
 	commonFlags := []cli.Flag{}
 
 	app := cli.NewApp()
@@ -38,35 +32,25 @@ func Main(args []string) int {
 					Value:  "us-east-1",
 					Usage:  "AWS Region",
 					EnvVar: "AWS_DEFAULT_REGION",
-
-					Destination: &awsRegion,
 				},
 				cli.StringFlag{
 					Name:  "tag, t",
 					Value: "",
 					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another-tag-key=another-tag-value\"",
-
-					Destination: &ebsFilterTag,
 				},
 				cli.BoolFlag{
 					Name:  "attached, a",
 					Usage: "If set to true, lists only ebs volumes which are attached to the host from where ebscli is executed",
-
-					Destination: &attachedOnly,
 				},
 				cli.StringFlag{
 					Name:  "id, i",
 					Value: "",
 					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
-
-					Destination: &ebsFilterId,
 				},
 				cli.StringFlag{
 					Name:  "ec2-id, e",
 					Value: "",
 					Usage: "Filter by volumes attached to specified ec2 ID",
-
-					Destination: &ec2Id,
 				},
 			),
 			Action: func(c *cli.Context) error {
@@ -93,22 +77,16 @@ func Main(args []string) int {
 					Value:  "us-east-1",
 					Usage:  "AWS Region",
 					EnvVar: "AWS_DEFAULT_REGION",
-
-					Destination: &awsRegion,
 				},
 				cli.StringFlag{
 					Name:  "tag, t",
 					Value: "",
 					Usage: "Volume filter by tags, eg. \"tag-key=tag-value,another-tag-key=another-tag-value\"",
-
-					Destination: &ebsFilterTag,
 				},
 				cli.StringFlag{
 					Name:  "id, i",
 					Value: "",
 					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
-
-					Destination: &ebsFilterId,
 				},
 			),
 
