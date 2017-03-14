@@ -57,7 +57,7 @@ services:
 #        condition: service_started
 
   ebscli:
-    image: dnabic/ebscli:v0.0.3
+    image: dnabic/ebscli:v0.0.5
     labels:
       app: ebscli
     networks:
