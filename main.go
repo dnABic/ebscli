@@ -86,14 +86,19 @@ func Main(args []string, version string) int {
 					Value: "",
 					Usage: "Volume filter by ids, eg. \"id1,id2,id3\"",
 				},
+				cli.StringFlag{
+					Name:  "ec2-id, e",
+					Value: "",
+					Usage: "ec2 instance ID to which volume should be attached",
+				},
 			),
-
 			Action: func(c *cli.Context) error {
 				args := attachArgs{
 					name:         c.Args().First(),
 					awsRegion:    c.String("region"),
 					ebsFilterTag: c.String("tag"),
 					ebsFilterId:  c.String("id"),
+					ec2Id:        c.String("ec2-id"),
 				}
 				attachEbs(args)
 				return nil
