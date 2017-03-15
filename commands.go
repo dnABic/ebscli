@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	_ "github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
@@ -25,9 +26,22 @@ type attachArgs struct {
 	awsRegion    string
 	ebsFilterTag string
 	ebsFilterId  string
+	ec2Id        string
 }
 
+//func getInstanceId(region string) {
+//	sess, err := session.NewSession()
+//	if err != nil {
+//		log.Fatalf("failed to create session %v\n", err)
+//	}
+//
+//	endpoint_url := os.Getenv("EBSCLI_ENDPOINT_URL")
+//	svc := ec2metadata.New(sess, &aws.Config{Region: aws.String(region), Endpoint: aws.String(endpoint_url)})
+//	fmt.Println(svc.GetMetadata("InstanceID"))
+//}
+
 func listEbs(args listArgs) {
+	//getInstanceId(args.awsRegion)
 	sess, err := session.NewSession()
 	if err != nil {
 		log.Fatalf("failed to create session %v\n", err)
@@ -135,6 +149,23 @@ func attachEbs(args attachArgs) {
 		//return nil
 		log.Fatalf(err.Error())
 	}
+
+	for _, volume := range respEbs.Volumes {
+		//fmt.Println(volume)
+		fmt.Println(*volume.VolumeId)
+		if len(args.ec2Id) > 0 {
+			fmt.Println(args.ec2Id)
+		}
+	}
+	//	params := &ec2.AttachVolumeInput{
+	//		Device:     aws.String("String"), // Required
+	//		InstanceId: aws.String("String"), // Required
+	//		VolumeId:   aws.String("String"), // Required
+	//	}
+	//	resp, err := ec2conn.AttachVolume(params)
+	//	if err != nil {
+	//		log.Fatalf(err.Error())
+	//	}
 
 	fmt.Println(respEbs)
 	//return nil
